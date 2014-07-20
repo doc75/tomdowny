@@ -1,0 +1,18 @@
+#!/usr/bin/env ruby
+$LOAD_PATH << './lib'
+require 'tomdowny'
+
+raise ArgumentError, 'Usage: tomdowny <path to note file>' if ARGV.size != 1
+
+begin
+  conv = Tomdowny::Converter.new(ARGV[0])
+  conv.run
+  puts conv.output
+  retval = 0
+rescue Exception => e
+  puts e
+  puts e.backtrace
+  retval = 1
+end
+
+exit retval
