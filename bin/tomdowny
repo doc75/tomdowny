@@ -4,15 +4,15 @@ require 'fileutils'
 $LOAD_PATH << './lib'
 require 'tomdowny'
 
-raise ArgumentError, 'Usage: tomdowny <path to notes directory>' if ARGV.size != 1
+raise ArgumentError, 'Usage: tomdowny <path to notes directory>' if (ARGV.size < 1 || ARGV.size > 2)
 
 begin
   # old_dir = FileUtils.pwd
-
+  author = (ARGV.size == 1) ? nil : ARGV[1]
   notes = (Dir.entries(ARGV[0]) - [ '.', '..' ]).select {|f| f =~ /.note$/ }
 
   notes.each do |note|
-    conv = Tomdowny::Converter.new("#{ARGV[0]}/#{note}")
+    conv = Tomdowny::Converter.new("#{ARGV[0]}/#{note}", author)
     conv.run
     File.open("#{ARGV[0]}/#{note[0...-4]}md", 'w') { |f| f.write(conv.output) }
   end

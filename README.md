@@ -1,6 +1,7 @@
-# Tomdowny
+Tomdowny [![Build Status](https://travis-ci.org/doc75/tomdowny.svg?branch=master)](https://travis-ci.org/doc75/tomdowny)
+=======
 
-TODO: Write a gem description
+Tomdowny is converting Tomboy notes into Markdown format (currently with a nanoc style header)
 
 ## Installation
 
@@ -18,7 +19,13 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+```bash
+$ tomdowny /path/to/directory/with/.note/files [Author Name]
+```
+
+**remark**: Author name is optional
+
+It will create one .md file for each .note file 
 
 ## Contributing
 
