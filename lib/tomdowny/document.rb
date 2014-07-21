@@ -1,62 +1,62 @@
 require 'nokogiri'
 
 module Tomdowny
+  TAGS = { 'italic'        => { :open => '*',    :close => '*'},
+           'bold'          => { :open => '**',   :close => '**'},
+           'highlight'     => { :open => '***',  :close => '***'},
+           'strikethrough' => { :open => '-',    :close => '-'},
+           'monospace'     => { :open => '`',    :close => '`'},
+           'size:small'    => { :open => '### ', :close => ' ###'},
+           'size:large'    => { :open => '## ',  :close => ' ##'},
+           'size:huge'     => { :open => '# ',   :close => ' #'},
+           'list-item'     => { :open => '- ',   :close => ''}
+         }
   class Document < Nokogiri::XML::SAX::Document
+    attr_writer :author
+
     def start_element(name, attrs = [])
       @output ||= ''
       @chars ||= []
       @valid ||= false
+
       case name
       when 'note-content'
         @valid = true
       when 'title'
-        @chars << ''
-        @output = "#{@output}# "
-      when 'bold'
-        @chars << '**'
-        @output = "#{@output}#{@chars[-1]}"
-      when 'italic'
-        @chars << '*'
-        @output = "#{@output}#{@chars[-1]}"
-      when 'strikethrough'
-        @chars << '-'
-        @output = "#{@output}#{@chars[-1]}"
-      when 'highlight'
-        @chars << '***'
-        @output = "#{@output}#{@chars[-1]}"
-      when 'monospace'
-        @chars << '`'
-        @output = "#{@output}#{@chars[-1]}"
-      when 'size:huge'
-        @chars << ' #'
-        @output = "#{@output}# "
-      when 'size:large'
-        @chars << ' ##'
-        @output = "#{@output}## "
-      when 'size:small'
-        @chars << ' ###'
-        @output = "#{@output}### "
+        @output = "#{@output}---
+title: "
+        @valid = true
       when 'list'
-        @chars << ''
-        @level ||= -1
+        @level ||= 0
         @level += 1
       when 'list-item'
-        @chars << ''
-        indent = '  ' * @level
-        @output = "#{@output}#{indent}* "
+        indent = '    ' * @level
+        @output = "#{@output}#{indent}"
       # TODO: see if we can manage links (not sure we should)
       end
+
+      @output = "#{@output}#{TAGS[name][:open]}" if TAGS[name]
+
     end
 
     def end_element(name)
-      @output = "#{@output}#{@chars[-1]}" if @chars.length > 0
-      @chars.pop
       case name
+      when 'title'
+        @valid = false
+        @author ||= 'Undefined'
+        @date ||= Time.new.strftime("%Y-%m-%d")
+        @output = "#{@output}
+author: #{@author}
+date: 2014-07-21
+---
+
+# "
       when 'list'
         @level -= 1
       when 'note-content'
         @valid = false
       end
+      @output = "#{@output}#{TAGS[name][:close]}" if TAGS[name]
     end
 
     def characters(string)

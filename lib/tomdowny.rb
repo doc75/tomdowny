@@ -1,5 +1,3 @@
 require "tomdowny/version"
-
-module Tomdowny
-  # Your code goes here...
-end
+require "tomdowny/converter"
+require "tomdowny/document"

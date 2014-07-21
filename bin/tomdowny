@@ -1,13 +1,21 @@
 #!/usr/bin/env ruby
+require 'fileutils'
+
 $LOAD_PATH << './lib'
 require 'tomdowny'
 
-raise ArgumentError, 'Usage: tomdowny <path to note file>' if ARGV.size != 1
+raise ArgumentError, 'Usage: tomdowny <path to notes directory>' if ARGV.size != 1
 
 begin
-  conv = Tomdowny::Converter.new(ARGV[0])
-  conv.run
-  puts conv.output
+  # old_dir = FileUtils.pwd
+
+  notes = (Dir.entries(ARGV[0]) - [ '.', '..' ]).select {|f| f =~ /.note$/ }
+
+  notes.each do |note|
+    conv = Tomdowny::Converter.new("#{ARGV[0]}/#{note}")
+    conv.run
+    File.open("#{ARGV[0]}/#{note[0...-4]}md", 'w') { |f| f.write(conv.output) }
+  end
   retval = 0
 rescue Exception => e
   puts e
