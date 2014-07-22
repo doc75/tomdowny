@@ -1,0 +1,58 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<note version="0.3" xmlns:link="http://beatniksoftware.com/tomboy/link" xmlns:size="http://beatniksoftware.com/tomboy/size" xmlns="http://beatniksoftware.com/tomboy">
+  <title>Test Note</title>
+  <text xml:space="preserve"><note-content version="0.1">Test Note
+
+Standard text
+
+<bold>Bold Text</bold>
+<italic>Italic Text</italic>
+<strikethrough>Strikethrough Text</strikethrough>
+<highlight>Hihglighted Text</highlight>
+<monospace>Monospace Text</monospace>
+
+<size:small>Small Text</size:small>
+Normal Text
+<size:large>Big Text</size:large>
+<size:huge>Huge Text</size:huge>
+
+Before List Text
+<list><list-item dir="ltr">List Text
+<list><list-item dir="ltr">Sub List Text
+<list><list-item dir="ltr">Sub Sub List Text
+<list><list-item dir="ltr">Sub sub sub List Text
+<list><list-item dir="ltr">Sub sub sub sub List Text
+<list><list-item dir="ltr">Sub sub sub sub sub List Text
+</list-item></list></list-item><list-item dir="ltr">Re-Sub sub sub sub List Text
+</list-item></list></list-item><list-item dir="ltr">Re-Sub sub sub List Text
+</list-item></list></list-item><list-item dir="ltr">Re-Sub Sub List Text
+</list-item></list></list-item><list-item dir="ltr">Re-Sub List Text
+</list-item></list></list-item><list-item dir="ltr">Re-List Text</list-item></list>
+After Re-List Text
+
+Strange Cases
+
+
+<italic><size:small>Small Italic</size:small></italic>
+<bold><size:large>Big Bold</size:large></bold>
+<monospace><size:huge>Huge Monospace</size:huge></monospace>
+<highlight><size:small>Small Highlighted</size:small></highlight>
+<strikethrough><size:large>Big Strikethrough</size:large></strikethrough>
+
+<highlight><size:small>Small Highlighted <bold>Bold</bold></size:small></highlight>
+
+<list><list-item dir="ltr">List with <bold>Bold</bold> Text
+<list><list-item dir="ltr">List with <italic>Italic</italic> Text</list-item></list></list-item></list>
+
+</note-content></text>
+  <last-change-date>2014-07-22T21:31:00.2568980+02:00</last-change-date>
+  <last-metadata-change-date>2014-07-22T21:31:00.2586430+02:00</last-metadata-change-date>
+  <create-date>2014-07-22T21:22:56.1817380+02:00</create-date>
+  <cursor-position>588</cursor-position>
+  <selection-bound-position>588</selection-bound-position>
+  <width>450</width>
+  <height>360</height>
+  <x>0</x>
+  <y>0</y>
+  <open-on-startup>False</open-on-startup>
+</note>
