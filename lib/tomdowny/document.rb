@@ -18,9 +18,10 @@ module Tomdowny
 
   class Document < Nokogiri::XML::SAX::Document
     attr_writer :author
+    attr_reader :result, :title
 
     def start_element(name, attrs = [])
-      @output    ||= ''
+      @result    ||= ''
       @chars     ||= []
       @valid     ||= false
       @open_tags ||= []
@@ -31,24 +32,21 @@ module Tomdowny
       when 'note-content'
         @valid = true
       when 'title'
-        @output = "#{@output}---
+        @title = nil
+        @result = "#{@result}---
 title: "
         @valid = true
       when 'list'
         @level ||= 0
         @level += 1
-        @output = "#{@output}\n" if @level == 1  
+        @result = "#{@result}\n" if @level == 1  
       when 'list-item'
         indent = '  ' * @level
-        @output = "#{@output}#{indent}"
+        @result = "#{@result}#{indent}"
       # TODO: see if we can manage links (not sure we should)
       end
 
-      if TAGS[name]
-        if @open_tags.length && (!INCOMPATIBILITIES.has_key?(name) || !INCOMPATIBILITIES[name].include?(@open_tags[-1]))
-          @output = "#{@output}#{TAGS[name][:open]}"
-        end
-      end
+      @result = "#{@result}#{TAGS[name][:open]}" if TAGS[name] && tag_compatible(name)
       @open_tags << name
     end
 
@@ -58,7 +56,7 @@ title: "
         @valid = false
         @author ||= 'Undefined'
         @date   ||= Time.new.strftime("%Y-%m-%d")
-        @output = "#{@output}
+        @result = "#{@result}
 author: #{@author}
 date: #{@date}
 ---
@@ -72,22 +70,35 @@ date: #{@date}
 
       @open_tags.pop
 
-      if TAGS[name]
-        if @open_tags.length && (!INCOMPATIBILITIES.has_key?(name) || !INCOMPATIBILITIES[name].include?(@open_tags[-1]))
-          @output = "#{@output}#{TAGS[name][:close]}"
-        end
-      end
+      @result = "#{@result}#{TAGS[name][:close]}" if TAGS[name] && tag_compatible(name)
     end
 
     def characters(string)
       newline = string.include?("\n")
+      string.gsub!(/`/) { |m| '\\' + m }
       if @valid
-        if ['text', 'list', 'list-item'].include?(@cur_first_elem_line)
-          @output = "#{@output}#{string}"
+        # if ['text', 'list', 'list-item'].include?(@cur_first_elem_line)
+        if ['list', 'list-item'].include?(@cur_first_elem_line)
+          @result = "#{@result}#{string}"
         else
-          @output = "#{@output}#{string.gsub(/\n/, "  \n")}"
+          @result = "#{@result}#{string.gsub(/\n/, "  \n")}"
+        end
+
+        if current_tag == 'title'
+          @title = "#{@title}#{string.downcase.gsub(/\s/, '-').gsub(/:/, '_')}"
         end
       end
+
+      # do not manage template notes
+      case current_tag
+      when 'tag'
+        # puts "#{@title}: tag = #{string}"
+        if string == 'system:template'
+          @title = nil
+          @result = nil
+        end
+      end
+
       @cur_first_elem_line = nil if newline
     end
 
@@ -99,8 +110,21 @@ date: #{@date}
       puts "WARNING: #{string}"
     end
 
-    def get_result
-      @output
-    end
+    private
+      def current_tag
+        if @open_tags.length > 0
+          @open_tags[-1]
+        else
+          nil
+        end
+      end
+
+      def tag_compatible tag_name
+        if INCOMPATIBILITIES.has_key?(tag_name) && INCOMPATIBILITIES[tag_name].include?(current_tag)
+          false
+        else
+          true
+        end
+      end
   end
 end

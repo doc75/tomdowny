@@ -14,7 +14,7 @@ begin
   notes.each do |note|
     conv = Tomdowny::Converter.new("#{ARGV[0]}/#{note}", author)
     conv.run
-    File.open("#{ARGV[0]}/#{note[0...-4]}md", 'w') { |f| f.write(conv.output) }
+    File.open("#{ARGV[0]}/#{conv.title}.md", 'w') { |f| f.write(conv.output) } if conv.title
   end
   retval = 0
 rescue Exception => e

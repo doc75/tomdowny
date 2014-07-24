@@ -14,8 +14,12 @@ module Tomdowny
       parser.parse(File.open(@file))
     end
 
+    def title
+      @doc.title
+    end
+    
     def output
-      @doc.get_result
+      @doc.result
     end
   end
 end

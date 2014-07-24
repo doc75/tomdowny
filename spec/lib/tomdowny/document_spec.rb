@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 require 'spec_helper'
 
 require 'tomdowny'
@@ -10,8 +11,7 @@ describe 'Tomdowny::Document' do
 <title>RSpec note</title>
 <text xml:space="preserve"><note-content version="0.1">RSpec note
 '
-    @footer = '</note-content></text></note>'
-    @input = @header + '
+    @body = '
 <link:internal>Link Internal</link:internal>
 <link:url>Link Url</link:url>
 <link:broken>Link broken</link:broken>
@@ -28,7 +28,9 @@ describe 'Tomdowny::Document' do
 <list><list-item dir="ltr">1st sub list
 <list><list-item dir="ltr">1st sub sub list</list-item></list>
 </list-item><list-item dir="ltr">2nd sub list</list-item></list></list-item></list>
-'  + @footer
+'
+    @footer = '</note-content></text></note>'
+    @input = @header + @body + @footer
 
     @date = Time.new.strftime("%Y-%m-%d")
     @result = "---
@@ -37,8 +39,8 @@ author: Undefined
 date: #{@date}
 ---
 
-# RSpec note
-
+# RSpec note  
+  
 Link Internal  
 Link Url  
 Link broken  
@@ -67,7 +69,7 @@ Link broken
 
   it 'output Markdown from note' do
     @parser.parse(@input)
-    expect(@doc.get_result).to be == @result
+    expect(@doc.result).to be == @result
   end
 
   # it 'output the expected result from sample note' do
@@ -79,19 +81,46 @@ Link broken
     it 'allows to set the author' do
       @doc.author = 'R. Spec Junior'
       @parser.parse(@input)
-      expect(@doc.get_result).to match(/author: R\. Spec Junior/)
+      expect(@doc.result).to match(/author: R\. Spec Junior/)
     end
 
     it 'sets author as Undefined by default' do
       @parser.parse(@input)
-      expect(@doc.get_result).to match(/author: Undefined/)
+      expect(@doc.result).to match(/author: Undefined/)
     end
   end
 
   context 'date' do
     it 'puts the conversion date as date (YYYY-mm-dd)' do
       @parser.parse(@input)
-      expect(@doc.get_result).to match(/date: #{@date}/)
+      expect(@doc.result).to match(/^date: #{@date}$/)
+    end
+  end
+
+  context 'title' do
+    it 'puts the title in downcase' do
+      @parser.parse(@input)
+      expect(@doc.title.downcase).to be == @doc.title
+    end
+
+    it 'replace : by _ in title' do
+      @parser.parse(@input.gsub(/RSpec note/, 'RSpec : note'))
+      expect(@doc.title).to be == 'rspec-_-note' 
+    end
+
+    it 'replace space by -' do
+      @parser.parse(@input)
+      expect(@doc.title).to be == 'rspec-note'
+    end
+
+    it 'manage french characters' do
+      header = '<?xml version="1.0" encoding="utf-8"?>
+<note version="0.3" xmlns:link="http://beatniksoftware.com/tomboy/link" xmlns:size="http://beatniksoftware.com/tomboy/size" xmlns="http://beatniksoftware.com/tomboy">
+<title>RSpéc note</title>
+<text xml:space="preserve"><note-content version="0.1">RSpec note
+'
+      @parser.parse(header + @body + @footer)
+      expect(@doc.title).to be == 'rspéc-note'
     end
   end
 
@@ -99,64 +128,76 @@ Link broken
     it 'italic' do
       note = "#{@header}<italic><size:small>Small Italic</size:small></italic>#{@footer}"
       @parser.parse(note)
-      expect(@doc.get_result).to match(/\*Small Italic\*/)
+      expect(@doc.result).to match(/^\*Small Italic\*$/)
     end
 
     it 'bold' do
       note = "#{@header}<bold><size:large>Big Bold</size:large></bold>#{@footer}"
       @parser.parse(note)
-      expect(@doc.get_result).to match(/\*\*Big Bold\*\*/)
+      expect(@doc.result).to match(/^\*\*Big Bold\*\*$/)
 
     end
 
     it 'highlighted' do
       note = "#{@header}<highlight><size:small>Small Highlighted</size:small></highlight>#{@footer}"
       @parser.parse(note)
-      expect(@doc.get_result).to match(/\*\*\*Small Highlighted\*\*\*/)
+      expect(@doc.result).to match(/^\*\*\*Small Highlighted\*\*\*$/)
     end
 
     it 'strikethrough' do
       note = "#{@header}<strikethrough><size:large>Big Strikethrough</size:large></strikethrough>#{@footer}"
       @parser.parse(note)
-      expect(@doc.get_result).to match(/-Big Strikethrough-/)
+      expect(@doc.result).to match(/^-Big Strikethrough-$/)
     end
 
     it 'monospace' do
       note = "#{@header}<monospace><size:huge>Huge Monospace</size:huge></monospace>#{@footer}"
       @parser.parse(note)
-      expect(@doc.get_result).to match(/`Huge Monospace`/)
+      expect(@doc.result).to match(/^`Huge Monospace`$/)
     end
   end
 
-  context 'font formatting mix' do
-    it 'prevents italic in bold' # do
-      # note = "#{@header}<bold><italic>Italic in Bold</italic></bold>#{@footer}"
-      # @parser.parse(note)
-      # expect(@doc.get_result).to match(/[^\*]\*\*Italic in Bold\*\*[^\*]/)
-    # end
+  context 'valid font formatting mix' do
+    it 'allows italic inside bold' do
+      note = "#{@header}<bold>Bold <italic>Italic</italic> Bold</bold>#{@footer}"
+      @parser.parse(note)
+      expect(@doc.result).to match(/^\*\*Bold \*Italic\* Bold\*\*$/)
+    end
 
-    it 'prevents italic in highlighted'
-    it 'prevents italic in strikethrough'
-    it 'prevents italic in monospace'
+    it 'allows bold inside italic' do
+      note = "#{@header}<italic>Italic <bold>Bold</bold> Italic</italic>#{@footer}"
+      @parser.parse(note)
+      expect(@doc.result).to match(/^\*Italic \*\*Bold\*\* Italic\*$/)
+    end
 
-    it 'prevents bold in italic'
-    it 'prevents bold in highlighted'
-    it 'prevents bold in strikethrough'
-    it 'prevents bold in monospace'
+  end
 
-    it 'prevents highlighted in italic'
-    it 'prevents highlighted in bold'
-    it 'prevents highlighted in strikethrough'
-    it 'prevents highlighted in monospace'
+  context 'special characters in note' do
+    it 'replaces ` by \`' do
+      note = "#{@header}<italic>This is a `backtick`</italic>#{@footer}"
+      @parser.parse(note)
+      expect(@doc.result).to match(/^\*This is a \\`backtick\\`\*$/)
+    end
+  end
 
-    it 'prevents strikethrough in italic'
-    it 'prevents strikethrough in bold'
-    it 'prevents strikethrough in highlighted'
-    it 'prevents strikethrough in monospace'
+  context 'template note exclusion' do
+    before :each do
+      @footer = '</note-content></text>
+  <tags>
+    <tag>system:template</tag>
+  </tags>
+</note>'
+      @input = "#{@header}This is a template note#{@footer}"
+    end
 
-    it 'prevents monospace in italic'
-    it 'prevents monospace in bold'
-    it 'prevents monospace in highlighted'
-    it 'prevents monospace in strikethrough'
+    it 'returns a nil title' do
+      @parser.parse(@input)
+      expect(@doc.title).to be nil
+    end
+
+    it 'returns a nil content' do
+      @parser.parse(@input)
+      expect(@doc.result).to be nil
+    end 
   end
 end
